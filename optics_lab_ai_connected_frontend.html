@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPTICS LAB — Interactive Ray Lab</title>
+<style>
+:root{--bg:#050913;--panel:#0a1425;--panel2:#0d1b30;--line:#1b3553;--text:#eaf5ff;--muted:#8ca7c5;--cyan:#42e8ff;--blue:#5594ff;--pink:#ff4fb8;--gold:#ffc45c;--green:#57f2ae;--red:#ff657a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -20%,#12315a 0%,var(--bg) 55%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100vh}
+button,select,input{font:inherit}button{cursor:pointer;color:var(--text);border:1px solid #25496b;background:#10243c;border-radius:10px;padding:10px 12px;transition:.2s}button:hover{border-color:var(--cyan);box-shadow:0 0 18px #42e8ff20;transform:translateY(-1px)}button.active{background:linear-gradient(135deg,#123b62,#12304d);border-color:var(--cyan);box-shadow:0 0 18px #42e8ff25}
+header{height:76px;border-bottom:1px solid #17304d;background:#06101ee8;backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:18px;position:sticky;top:0;z-index:5}
+.brand{display:flex;align-items:center;gap:12px;min-width:180px}.logo{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,var(--cyan),#5078ff 65%,var(--pink));display:grid;place-items:center;color:#06101d;font-size:22px;font-weight:900;box-shadow:0 0 24px #42e8ff4a}.brand strong{letter-spacing:2px;font-size:16px}.brand small{display:block;color:var(--muted);letter-spacing:1.4px;font-size:9px;margin-top:3px}
+nav{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}nav button{background:transparent;border-color:transparent;color:#9db4d0;padding:9px 13px}nav button.active{color:var(--cyan);background:#10243c;border-color:#1d476b}
+.top-right{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12px}.status{width:7px;height:7px;background:var(--green);border-radius:50%;box-shadow:0 0 12px var(--green);display:inline-block}
+main{max-width:1600px;margin:auto;padding:20px;display:grid;grid-template-columns:270px minmax(0,1fr) 280px;gap:16px}
+.panel{background:linear-gradient(160deg,#0c192bF2,#07111ff5);border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 40px #0003;min-width:0}.panel-head{padding:17px 18px 12px;border-bottom:1px solid #172e49;display:flex;justify-content:space-between;align-items:center;gap:8px}.panel-head h2,.panel-head h3{margin:0;font-size:13px;letter-spacing:1.2px;text-transform:uppercase}.eyebrow{font-size:10px;color:var(--cyan);letter-spacing:1.5px;text-transform:uppercase}.controls{padding:16px;display:flex;flex-direction:column;gap:18px}.section-title{font-size:11px;color:#a9bfd8;letter-spacing:1.1px;text-transform:uppercase;margin-bottom:9px;font-weight:700}.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}.choice-grid button{font-size:12px;padding:10px 7px}.choice-grid .wide{grid-column:1/-1}.field{margin-top:12px}.field-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:#b9cbe0;margin-bottom:8px}.value{font-variant-numeric:tabular-nums;color:var(--cyan);font-size:12px}.range{width:100%;accent-color:var(--cyan);cursor:pointer}.hint{color:#7895b5;font-size:10px;line-height:1.5;margin-top:6px}.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:12px;color:#b9cbe0}.switch{appearance:none;width:34px;height:19px;border-radius:20px;background:#203750;position:relative;cursor:pointer;outline:none;border:1px solid #365371}.switch:checked{background:#0b7286;border-color:var(--cyan)}.switch:before{content:"";position:absolute;width:13px;height:13px;top:2px;left:2px;border-radius:50%;background:#c8d7e8;transition:.2s}.switch:checked:before{left:17px;background:white;box-shadow:0 0 8px var(--cyan)}select{width:100%;background:#0b1b2e;color:var(--text);border:1px solid #284968;border-radius:9px;padding:10px;outline:none}
+.stage{display:flex;flex-direction:column;gap:14px}.scene{overflow:hidden;position:relative}.scene-top{padding:14px 17px;display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #18324f;background:#091526}.scene-title{font-weight:700;font-size:14px}.scene-sub{font-size:11px;color:var(--muted);margin-top:4px}.scene-actions{display:flex;gap:7px;flex-wrap:wrap}.scene-actions button{font-size:11px;padding:8px 10px}.canvas-wrap{position:relative;background:radial-gradient(ellipse at 50% 50%,#0b2038 0%,#07111f 72%);min-height:410px}.canvas-wrap:before{content:"";position:absolute;inset:0;background-image:linear-gradient(#1c3b591c 1px,transparent 1px),linear-gradient(90deg,#1c3b591c 1px,transparent 1px);background-size:28px 28px;pointer-events:none}canvas{display:block;width:100%;height:430px;position:relative;z-index:1}.legend{display:flex;gap:15px;flex-wrap:wrap;padding:12px 16px;border-top:1px solid #18324f;color:#8eaac8;font-size:10px}.legend span{display:flex;align-items:center;gap:6px}.swatch{width:18px;height:2px;border-radius:2px;display:inline-block;box-shadow:0 0 8px currentColor}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{padding:14px;border-radius:13px;background:linear-gradient(145deg,#0c1b2e,#091321);border:1px solid #193551}.metric label{display:block;font-size:10px;color:var(--muted);margin-bottom:8px}.metric strong{font-size:19px;letter-spacing:-.5px;font-variant-numeric:tabular-nums}.metric small{display:block;font-size:10px;color:#6f8eaf;margin-top:5px}
+.table-panel{padding:16px}.table-panel h3{margin:0 0 12px;font-size:12px;letter-spacing:1px;text-transform:uppercase}.property{display:grid;grid-template-columns:1fr auto;gap:12px;padding:10px 0;border-bottom:1px solid #172d45;font-size:12px}.property:last-child{border-bottom:0}.property span{color:var(--muted)}.property strong{text-align:right;font-weight:600}.tag{font-size:10px;border-radius:20px;padding:5px 8px;background:#0e3040;border:1px solid #1a6674;color:var(--cyan);white-space:nowrap}.tag.warn{color:var(--gold);border-color:#77562a;background:#30230e}.right-stack{display:flex;flex-direction:column;gap:14px}.formula{padding:15px;background:#081423;border:1px solid #1a3552;border-radius:12px;text-align:center}.formula .equation{font-family:Georgia,serif;font-size:22px;color:#e8f7ff;margin:7px 0}.formula small{color:var(--muted);font-size:10px;line-height:1.5}.mini-note{padding:12px;border-radius:10px;background:#101e30;color:#92abc7;font-size:11px;line-height:1.6}.mini-note b{color:#dceeff}.bottom-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.bottom-grid .panel{padding:16px}.bottom-grid h3{font-size:12px;letter-spacing:1px;text-transform:uppercase;margin:0 0 12px}.position-buttons{display:flex;gap:6px;flex-wrap:wrap}.position-buttons button{font-size:10px;padding:7px 9px}.ray-list{display:flex;flex-direction:column;gap:10px}.ray-item{display:flex;gap:9px;font-size:11px;color:#a7bdd4;line-height:1.5}.ray-num{width:21px;height:21px;border-radius:7px;display:grid;place-items:center;flex-shrink:0;background:#122942;color:var(--cyan);font-size:10px}
+footer{text-align:center;color:#5f7e9f;font-size:10px;padding:8px 16px 22px}
+@media(max-width:1180px){main{grid-template-columns:245px minmax(0,1fr)}.right-stack{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr}.brand{min-width:150px}.metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:760px){header{height:auto;padding:13px;align-items:flex-start;flex-wrap:wrap}.brand{min-width:0}.top-right{margin-left:auto}nav{order:3;width:100%;justify-content:flex-start;overflow:auto;flex-wrap:nowrap}nav button{white-space:nowrap}main{padding:10px;grid-template-columns:1fr}.controls{display:grid;grid-template-columns:1fr 1fr;gap:14px}.controls .full{grid-column:1/-1}.canvas-wrap{min-height:330px}canvas{height:350px}.right-stack{grid-column:auto;display:flex}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.bottom-grid{grid-template-columns:1fr}.scene-top{align-items:flex-start;flex-direction:column}.scene-actions{width:100%}}
+@media(max-width:430px){.controls{grid-template-columns:1fr}.controls .full{grid-column:auto}.metric strong{font-size:16px}}
+
+/* Total internal reflection lab */
+#tirLab{display:none;max-width:1600px;margin:0 auto;padding:0 20px 24px}
+#tirLab.visible{display:block}
+.tir-layout{display:grid;grid-template-columns:280px minmax(0,1fr) 270px;gap:16px}
+.tir-controls{padding:17px;display:flex;flex-direction:column;gap:18px}
+.tir-canvas-wrap{position:relative;background:radial-gradient(ellipse at 50% 60%,#102b43 0%,#07111f 76%);overflow:hidden}
+#tirCanvas{display:block;width:100%;height:440px}
+.tir-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:12px}
+.tir-status{padding:14px;border-radius:12px;border:1px solid #24435f;background:#0a192a}
+.tir-status strong{display:block;font-size:17px;margin-top:6px}
+.tir-status small{color:var(--muted);font-size:10px}
+.tir-callout{margin:14px;padding:13px;border:1px solid #24425f;border-radius:12px;background:#0b1b2e;color:#a9bfd8;font-size:12px;line-height:1.65}
+.tir-callout b{color:#e7f7ff}
+@media(max-width:1180px){.tir-layout{grid-template-columns:245px minmax(0,1fr)}.tir-right{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:14px}}
+@media(max-width:760px){#tirLab{padding:0 10px 18px}.tir-layout{grid-template-columns:1fr}.tir-controls{display:grid;grid-template-columns:1fr 1fr}.tir-controls .full{grid-column:1/-1}.tir-right{grid-column:auto;display:flex;flex-direction:column}.tir-metrics{grid-template-columns:1fr}.tir-status strong{font-size:15px}#tirCanvas{height:350px}}
+
+
+/* Integrated OPTICS LAB */
+#aiStudio{display:none;max-width:1600px;margin:0 auto;padding:0 20px 24px}#aiStudio.visible{display:block}
+.blink-dot{display:inline-block;color:#ffe600;margin-right:5px;text-shadow:0 0 8px #ffe600;animation:yellowBlink .9s steps(2,start) infinite}@keyframes yellowBlink{to{visibility:hidden}}\n.studio-shell{display:grid;grid-template-columns:minmax(270px,360px) minmax(0,1fr);gap:16px}.studio-panel{padding:20px}
+.studio-heading{display:flex;align-items:center;gap:12px;margin-bottom:8px}.studio-orb{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:23px;color:#06101d;background:linear-gradient(135deg,var(--cyan),#8b7bff 65%,var(--pink));box-shadow:0 0 25px #42e8ff35}
+.studio-heading h2{font-size:17px;margin:0}.studio-heading p{font-size:11px;color:var(--muted);margin:4px 0 0}.studio-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}
+.studio-tab{padding:12px 8px!important;text-align:left;display:flex;gap:9px;align-items:center}.studio-tab b{display:block;font-size:12px}.studio-tab small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.studio-input{width:100%;min-height:145px;resize:vertical;background:#071526;color:var(--text);border:1px solid #284968;border-radius:12px;padding:13px;line-height:1.55;outline:none}.studio-input:focus{border-color:var(--cyan)}
+.studio-drop{border:1px dashed #3b6586;border-radius:13px;background:#081727;padding:18px;text-align:center;cursor:pointer}.studio-drop:hover,.studio-drop.dragover{border-color:var(--cyan);background:#0a2034}
+.studio-drop strong{display:block;font-size:12px;margin:9px 0 5px}.studio-drop span{font-size:10px;color:var(--muted);line-height:1.5}
+.studio-file-preview{display:none;margin-top:12px;padding:10px;border:1px solid #24435f;border-radius:10px;gap:10px;align-items:center}.studio-file-preview img{width:76px;height:64px;object-fit:contain;border-radius:7px;background:#030913}.studio-file-preview div{min-width:0;flex:1}.studio-file-preview b{display:block;font-size:11px;overflow-wrap:anywhere}.studio-file-preview small{color:var(--muted);font-size:10px}
+.studio-actions{display:flex;gap:8px;margin-top:12px}.studio-actions button{flex:1}.studio-primary{background:linear-gradient(135deg,#0d536a,#263d83)!important;border-color:#42e8ff!important}
+.studio-note{border:1px solid #4a3c20;background:#211b11;color:#cdb98d;border-radius:10px;padding:11px;font-size:10px;line-height:1.55;margin-top:14px}
+.studio-result{min-height:470px;display:flex;flex-direction:column}.studio-result-head{padding:18px 20px;border-bottom:1px solid #18324f;display:flex;justify-content:space-between;gap:12px;align-items:center}.studio-result-head h3{margin:0;font-size:13px;letter-spacing:1px;text-transform:uppercase}
+.studio-empty{flex:1;display:grid;place-items:center;text-align:center;padding:30px;min-height:360px}.studio-empty .empty-icon{font-size:42px;color:var(--cyan);filter:drop-shadow(0 0 18px #42e8ff45)}.studio-empty h4{font-size:17px;margin:15px 0 7px}.studio-empty p{max-width:430px;font-size:12px;line-height:1.7;color:var(--muted);margin:0}
+.studio-output{display:none;padding:18px}.studio-output-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(220px,.75fr);gap:14px}.studio-preview{border:1px solid #203e5a;border-radius:12px;overflow:hidden;background:#07111f}.studio-preview-top{padding:11px 13px;display:flex;justify-content:space-between;border-bottom:1px solid #1b3553;font-size:11px}
+#studioCanvas{width:100%;height:300px;display:block}.studio-facts{display:flex;flex-direction:column;gap:9px}.studio-fact{border:1px solid #1b3553;background:#081625;border-radius:10px;padding:12px}.studio-fact small{font-size:9px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;display:block;margin-bottom:6px}.studio-fact strong{font-size:13px;line-height:1.4}
+.studio-description{font-size:12px;line-height:1.7;color:#a9bfd8;padding:14px;border:1px solid #1b3553;border-radius:10px;background:#081625;margin-top:13px}.studio-status{font-size:10px;border:1px solid #77562a;color:var(--gold);background:#30230e;padding:6px 9px;border-radius:20px;white-space:nowrap}.studio-status.local{border-color:#1a6674;color:var(--cyan);background:#0e3040}.studio-output-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.studio-output-buttons button{font-size:11px}
+@media(max-width:900px){.studio-shell{grid-template-columns:1fr}.studio-output-grid{grid-template-columns:1fr}.studio-result{min-height:360px}}@media(max-width:760px){#aiStudio{padding:0 10px 18px}.studio-panel{padding:14px}.studio-result-head{padding:14px}}
+
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><div class="logo">ϟ</div><div><strong>OPTICS <span style="color:var(--cyan)">LAB</span></strong><small>INTERACTIVE RAY OPTICS</small></div></div>
+  <nav>
+    <button class="active" data-nav="mirrors">◖ Mirrors</button><button data-nav="lenses">◈ Lenses</button><button data-nav="tir">✧ TIR & Refraction</button><button data-nav="compare">◎ Compare</button><button data-nav="rays">➤ Ray tracing</button><button data-nav="studio"><span class="blink-dot" aria-hidden="true">●</span> OPTICS LAB</button>
+  </nav>
+  <div class="top-right"><span class="status"></span> LIVE SIMULATION <span style="color:#365573">|</span><span id="modeText">DARK MODE</span><input id="themeSwitch" class="switch" type="checkbox" checked aria-label="Toggle light theme"></div>
+</header>
+<main>
+  <aside class="panel">
+    <div class="panel-head"><h2>Experiment setup</h2><span class="eyebrow">01 / SET</span></div>
+    <div class="controls">
+      <div class="full">
+        <div class="section-title">Optical element</div>
+        <div class="choice-grid" id="elementChoices">
+          <button class="active" data-element="concaveMirror">◖ Concave mirror</button>
+          <button data-element="convexMirror">◗ Convex mirror</button>
+          <button data-element="convexLens">◈ Convex lens</button>
+          <button data-element="concaveLens">◇ Concave lens</button>
+        </div>
+      </div>
+      <div class="full">
+        <div class="section-title">Object type</div>
+        <div class="choice-grid"><button class="active" data-object="real">Real object</button><button data-object="virtual">Virtual object</button></div>
+        <div class="hint" id="objectHint">Real object: rays spread out from the object before reaching the element.</div>
+      </div>
+      <div class="full">
+        <div class="section-title">Object distance</div>
+        <div class="field"><div class="field-row"><label for="distance">Distance from element</label><span class="value" id="distanceValue">30 cm</span></div><input class="range" id="distance" type="range" min="5" max="100" value="30"><div class="field-row"><span>Near</span><span>Far</span></div></div>
+        <div class="position-buttons"><button data-pos="infinity">∞ Far away</button><button data-pos="2f">At 2F</button><button data-pos="f">At F</button><button data-pos="between">Between F & pole</button></div>
+        <div class="hint">Choose a quick position or drag the slider.</div>
+      </div>
+      <div class="full">
+        <div class="section-title">Focal length</div>
+        <div class="field"><div class="field-row"><label for="focal">Focal length magnitude</label><span class="value" id="focalValue">15 cm</span></div><input class="range" id="focal" type="range" min="5" max="35" value="15"></div>
+        <div class="hint" id="focusHint">Concave mirror: converging element, f = +15 cm in this physical-distance convention.</div>
+      </div>
+      <div class="full">
+        <div class="section-title">Display</div>
+        <div class="toggle-row"><label for="showLabels">Labels & focal points</label><input id="showLabels" class="switch" type="checkbox" checked></div>
+        <div class="toggle-row" style="margin-top:11px"><label for="showRays">Principal rays</label><input id="showRays" class="switch" type="checkbox" checked></div>
+        <div class="toggle-row" style="margin-top:11px"><label for="glow">Neon glow</label><input id="glow" class="switch" type="checkbox" checked></div>
+        <div class="toggle-row" style="margin-top:11px"><label for="showGrid">Grid</label><input id="showGrid" class="switch" type="checkbox" checked></div>
+      </div>
+      <div class="full"><button id="reset" style="width:100%">↺ Reset experiment</button></div>
+    </div>
+  </aside>
+
+  <section class="stage">
+    <section class="panel scene">
+      <div class="scene-top"><div><div class="scene-title" id="sceneTitle">CONCAVE MIRROR <span style="color:var(--cyan)">/ REAL OBJECT</span></div><div class="scene-sub" id="sceneSubtitle">Move the object and watch the rays respond in real time.</div></div><div class="scene-actions"><button id="animateBtn" class="active">▶ Animate rays</button><button id="stepBtn">◎ Step-by-step</button></div></div>
+      <div class="canvas-wrap"><canvas id="rayCanvas" aria-label="Interactive ray diagram"></canvas></div>
+      <div class="legend"><span><i class="swatch" style="background:#ff557b;color:#ff557b"></i> Parallel ray</span><span><i class="swatch" style="background:#42e8ff;color:#42e8ff"></i> Focal ray</span><span><i class="swatch" style="background:#ffc45c;color:#ffc45c"></i> Central ray / axis</span><span><i class="swatch" style="background:#b18cff;color:#b18cff"></i> Backward extension</span></div>
+    </section>
+    <div class="metrics">
+      <div class="metric"><label>IMAGE DISTANCE</label><strong id="imageDistance">15.0 cm</strong><small id="imageDistanceSub">From optical element</small></div>
+      <div class="metric"><label>MAGNIFICATION</label><strong id="magnification">−0.50×</strong><small id="magnificationSub">Image / object height</small></div>
+      <div class="metric"><label>IMAGE NATURE</label><strong id="nature">REAL</strong><small id="natureSub">Converging rays</small></div>
+      <div class="metric"><label>IMAGE SIZE</label><strong id="size">0.50×</strong><small id="sizeSub">Diminished</small></div>
+    </div>
+    <div class="bottom-grid">
+      <section class="panel"><h3>Quick object positions</h3><div class="position-buttons"><button data-pos="infinity">At infinity</button><button data-pos="beyond2f">Beyond 2F</button><button data-pos="2f">At 2F</button><button data-pos="between2f">Between F & 2F</button><button data-pos="f">At F</button><button data-pos="between">Between F & pole</button></div><div class="hint" style="margin-top:12px">For virtual objects, use the object-type switch, then move the slider to test either side of the focal point.</div></section>
+      <section class="panel"><h3>Ray tracing guide</h3><div class="ray-list"><div class="ray-item"><span class="ray-num">01</span><span><b style="color:#ff7b97">Parallel ray</b><br>Parallel to the principal axis; reflects/refracts through (or appears to come from) the focus.</span></div><div class="ray-item"><span class="ray-num">02</span><span><b style="color:#42e8ff">Focal ray</b><br>Through/toward the focus; emerges parallel to the principal axis.</span></div><div class="ray-item"><span class="ray-num">03</span><span><b style="color:#ffc45c">Central ray</b><br>Approximate paraxial ray through the optical centre (lens) or pole (mirror).</span></div></div></section>
+    </div>
+  </section>
+
+  <aside class="right-stack">
+    <section class="panel table-panel"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="margin:0">Image analysis</h3><span class="tag" id="statusTag">CALCULATED</span></div>
+      <div class="property"><span>Object distance</span><strong id="objProp">30 cm</strong></div>
+      <div class="property"><span>Focal length</span><strong id="fProp">+15 cm</strong></div>
+      <div class="property"><span>Image position</span><strong id="posProp">15 cm</strong></div>
+      <div class="property"><span>Orientation</span><strong id="orientation">Inverted</strong></div>
+      <div class="property"><span>Size classification</span><strong id="sizeProp">Diminished</strong></div>
+      <div class="property"><span>Image location</span><strong id="locationProp">In front</strong></div>
+    </section>
+    <section class="panel table-panel"><h3>Optics equation</h3><div class="formula"><div class="eyebrow">GAUSSIAN FORM</div><div class="equation" id="formula">1/f = 1/s + 1/s′</div><small id="formulaNote">s is signed object distance; s′ is signed image distance in the physical convention used here.</small></div><div class="mini-note" style="margin-top:12px"><b>Sign convention used</b><br>Real object distance s is positive; virtual object distance s is negative. Converging element f is positive; diverging element f is negative. Positive image distance means real image.</div></section>
+    <section class="panel table-panel"><h3>System comparison</h3><div class="property"><span>Concave mirror</span><strong style="color:var(--gold)">Converging</strong></div><div class="property"><span>Convex mirror</span><strong style="color:var(--cyan)">Diverging</strong></div><div class="property"><span>Convex lens</span><strong style="color:var(--green)">Converging</strong></div><div class="property"><span>Concave lens</span><strong style="color:var(--pink)">Diverging</strong></div><div class="hint">Real/virtual image depends on both the optical element and the object type/position.</div></section>
+  </aside>
+</main>
+
+<section id="tirLab">
+  <div class="tir-layout">
+    <aside class="panel">
+      <div class="panel-head"><h2>Refraction experiment</h2><span class="eyebrow">TIR / 01</span></div>
+      <div class="tir-controls">
+        <div class="full">
+          <div class="section-title">Material pair</div>
+          <select id="tirPair">
+            <option value="glassAir">Glass → Air (1.50 → 1.00)</option>
+            <option value="waterAir">Water → Air (1.33 → 1.00)</option>
+            <option value="acrylicAir">Acrylic → Air (1.49 → 1.00)</option>
+            <option value="diamondAir">Diamond → Air (2.42 → 1.00)</option>
+            <option value="glassWater">Glass → Water (1.50 → 1.33)</option>
+            <option value="airGlass">Air → Glass (1.00 → 1.50)</option>
+            <option value="airWater">Air → Water (1.00 → 1.33)</option>
+            <option value="airAcrylic">Air → Acrylic (1.00 → 1.49)</option>
+            <option value="airDiamond">Air → Diamond (1.00 → 2.42)</option>
+            <option value="waterGlass">Water → Glass (1.33 → 1.50)</option>
+          </select>
+          <div class="hint">Try both directions. Total internal reflection is possible only when light travels from higher refractive index to lower refractive index.</div>
+        </div>
+        <div class="full">
+          <div class="section-title">Angle of incidence</div>
+          <div class="field-row"><label for="tirAngle">From the normal</label><span class="value" id="tirAngleValue">30.0°</span></div>
+          <input class="range" id="tirAngle" type="range" min="0" max="89.5" step="0.5" value="30">
+          <div class="field-row"><span>0° · normal incidence</span><span>89.5° · grazing</span></div>
+          <div class="position-buttons">
+            <button data-tir-angle="0">0°</button><button data-tir-angle="30">30°</button><button data-tir-angle="45">45°</button><button data-tir-angle="60">60°</button><button data-tir-angle="75">75°</button>
+          </div>
+        </div>
+        <div class="full">
+          <div class="section-title">Display options</div>
+          <div class="toggle-row"><label for="tirShowAngles">Angle labels</label><input id="tirShowAngles" class="switch" type="checkbox" checked></div>
+          <div class="toggle-row" style="margin-top:11px"><label for="tirGlow">Neon ray glow</label><input id="tirGlow" class="switch" type="checkbox" checked></div>
+        </div>
+        <div class="full">
+          <button id="tirCriticalBtn" style="width:100%">◎ Set to critical angle</button>
+          <div style="height:8px"></div>
+          <button id="tirResetBtn" style="width:100%">↺ Reset experiment</button>
+        </div>
+      </div>
+    </aside>
+
+    <section class="panel scene">
+      <div class="scene-top">
+        <div><div class="scene-title">TOTAL INTERNAL REFLECTION <span style="color:var(--cyan)">/ LIVE MODEL</span></div><div class="scene-sub">Change the incidence angle. Watch the reflected and refracted rays respond.</div></div>
+        <div class="scene-actions"><span class="tag" id="tirStateTag">PARTIAL REFLECTION + REFRACTION</span></div>
+      </div>
+      <div class="tir-canvas-wrap"><canvas id="tirCanvas" aria-label="Interactive total internal reflection diagram"></canvas></div>
+      <div class="legend">
+        <span><i class="swatch" style="background:#ff557b;color:#ff557b"></i> Incident ray</span>
+        <span><i class="swatch" style="background:#42e8ff;color:#42e8ff"></i> Reflected ray</span>
+        <span><i class="swatch" style="background:#ffc45c;color:#ffc45c"></i> Refracted ray</span>
+        <span><i class="swatch" style="background:#b18cff;color:#b18cff"></i> Normal</span>
+      </div>
+      <div class="tir-metrics">
+        <div class="tir-status"><small>CRITICAL ANGLE</small><strong id="tirCriticalValue">41.8°</strong><small>sin C = n₂ / n₁</small></div>
+        <div class="tir-status"><small>REFRACTION ANGLE</small><strong id="tirRefractValue">48.6°</strong><small id="tirRefractSub">Measured from the normal</small></div>
+        <div class="tir-status"><small>REFLECTED POWER</small><strong id="tirReflectValue">4.0%</strong><small id="tirTransmitValue">Transmitted: 96.0%</small></div>
+      </div>
+    </section>
+
+    <aside class="tir-right right-stack">
+      <section class="panel table-panel">
+        <h3>Live optical data</h3>
+        <div class="property"><span>Incident medium</span><strong id="tirN1">Glass · 1.50</strong></div>
+        <div class="property"><span>Rarer medium</span><strong id="tirN2">Air · 1.00</strong></div>
+        <div class="property"><span>Incidence angle i</span><strong id="tirI">30.0°</strong></div>
+        <div class="property"><span>Critical angle C</span><strong id="tirC">41.8°</strong></div>
+        <div class="property"><span>Ray behaviour</span><strong id="tirBehaviour">Refraction + reflection</strong></div>
+      </section>
+      <section class="panel table-panel">
+        <h3>Physics behind it</h3>
+        <div class="formula"><div class="eyebrow">SNELL'S LAW</div><div class="equation">n₁ sin i = n₂ sin r</div><small>Applies to the transmitted ray when it exists.</small></div>
+        <div class="formula" style="margin-top:10px"><div class="eyebrow">CRITICAL ANGLE</div><div class="equation">sin C = n₂ / n₁</div><small>Only when n₁ &gt; n₂.</small></div>
+        <div class="tir-callout" id="tirExplanation"><b>Below the critical angle:</b> some light reflects and some refracts into the rarer medium.</div>
+      </section>
+    </aside>
+  </div>
+</section>
+
+
+<section id="aiStudio">
+ <div class="studio-shell">
+  <section class="panel studio-panel">
+   <div class="studio-heading"><div class="studio-orb">✦</div><div><h2>OPTICS LAB</h2><p>Build, tune, and save interactive optics experiments</p></div></div>
+   <div class="eyebrow">CREATE A NEW PROJECT</div>
+   <div class="studio-tabs">
+    <button class="studio-tab active" id="studioPromptTab"><span style="font-size:20px">✎</span><span><b>Write a prompt</b><small>Describe the experiment</small></span></button>
+    <button class="studio-tab" id="studioImageTab"><span style="font-size:20px">▧</span><span><b>Upload an image</b><small>Question or ray diagram</small></span></button>
+   </div>
+   <div id="studioPromptPane"><label class="section-title" for="studioPrompt">WHAT SHOULD THE MODEL DO?</label><textarea id="studioPrompt" class="studio-input" placeholder="Describe your optics experiment...">Create a convex lens model. Let me move the object and show how image position, size and nature change as it moves through F and 2F.</textarea><div class="hint">Describe the optical element, adjustable controls, and what you want to observe.</div></div>
+   <div id="studioImagePane" style="display:none"><label class="section-title">UPLOAD AN OPTICS QUESTION</label><input type="file" id="studioImageInput" accept="image/*" hidden><div class="studio-drop" id="studioDrop" role="button" tabindex="0"><div style="font-size:28px;color:var(--cyan)">⇧</div><strong>Choose an image or drop it here</strong><span>JEE question, textbook figure, or hand-drawn optics diagram<br>PNG, JPG, WEBP</span></div><div class="studio-file-preview" id="studioFilePreview"><img id="studioFileThumb" alt="Uploaded question preview"><div><b id="studioFileName">Image selected</b><small id="studioFileSize"></small></div><button id="studioRemoveImage" type="button">Remove</button></div><label class="section-title" for="studioImageNotes" style="display:block;margin-top:16px">OPTIONAL INSTRUCTIONS</label><textarea id="studioImageNotes" class="studio-input" style="min-height:90px" placeholder="What should be interactive?"></textarea></div>
+   <div class="studio-actions"><button id="studioGenerate" class="studio-primary">✦ Generate model</button><button id="studioClear">Clear</button></div>
+   <div class="studio-note"><b>AI connection required for full generation.</b> AI generation uses the included secure backend. Start the server and configure OPENAI_API_KEY; never put your API key in this HTML. AI output is a model specification and should be checked against the physics.</div>
+  </section>
+  <section class="panel studio-result">
+   <div class="studio-result-head"><h3>Project workspace</h3><span class="studio-status" id="studioStatus">WAITING FOR INPUT</span></div>
+   <div class="studio-empty" id="studioEmpty"><div><div class="empty-icon">⌘</div><h4>Your next optics experiment starts here</h4><p>Choose prompt mode or image mode, then generate a concept preview. The AI-connected version can interpret input, build an interactive model, and validate its physics.</p></div></div>
+   <div class="studio-output" id="studioOutput"><div class="studio-output-grid"><div class="studio-preview"><div class="studio-preview-top"><span id="studioPreviewTitle">MODEL PREVIEW</span><span style="color:var(--cyan)">LIVE CONCEPT</span></div><canvas id="studioCanvas" aria-label="Generated optics concept preview"></canvas></div><div class="studio-facts"><div class="studio-fact"><small>Detected model type</small><strong id="studioType">Convex lens</strong></div><div class="studio-fact"><small>Suggested interactions</small><strong id="studioControls">Object distance, focal length</strong></div><div class="studio-fact"><small>Physics to calculate</small><strong id="studioPhysics">Lens equation, magnification</strong></div></div></div><div class="studio-description" id="studioDescription"></div><div class="studio-facts" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr">
+      <div class="studio-fact"><small>Object distance (cm)</small><input id="studioDistance" type="range" min="5" max="100" value="30" style="width:100%"><strong id="studioDistanceValue">30 cm</strong></div>
+      <div class="studio-fact"><small>Focal length magnitude (cm)</small><input id="studioFocal" type="range" min="5" max="35" value="15" style="width:100%"><strong id="studioFocalValue">15 cm</strong></div>
+    </div>
+    <div class="studio-facts" style="margin-top:9px">
+      <div class="studio-fact"><small>Live paraxial calculation</small><strong id="studioCalc">Image position and magnification will appear here.</strong></div>
+    </div>
+    <div class="studio-output-buttons"><button id="studioOpenLab" class="studio-primary">Open this model in the lab</button><button id="studioEditPrompt">Edit input</button><button id="studioSave">Save project</button><button id="studioExport">Export project</button></div></div>
+  </section>
+ </div>
+</section>
+
+<footer>OPTICS LAB • PARAXIAL RAY MODEL • FOR LEARNING & EXPLORATION</footer>
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const canvas = $('rayCanvas'), ctx = canvas.getContext('2d');
+const names = {concaveMirror:'Concave mirror',convexMirror:'Convex mirror',convexLens:'Convex lens',concaveLens:'Concave lens'};
+let state={element:'concaveMirror',object:'real',distance:30,focal:15,animate:true,step:false,theme:'dark'};
+let animFrame=0, raf=0;
+const isMirror = () => state.element.toLowerCase().includes('mirror');
+const converging = () => state.element==='concaveMirror'||state.element==='convexLens';
+const fSigned = () => converging()?state.focal:-state.focal;
+const sSigned = () => state.object==='real'?state.distance:-state.distance;
+function calc(){
+  const f=fSigned(), s=sSigned(), denom=1/f-1/s;
+  const image= Math.abs(denom)<1e-7 ? Infinity : 1/denom;
+  const m=Number.isFinite(image)?-image/s:Infinity;
+  const real=Number.isFinite(image)&&image>0;
+  return {f,s,image,m,real,atInfinity:!Number.isFinite(image)};
+}
+function fmt(n,unit='cm'){if(!Number.isFinite(n))return '∞';return `${n>0?'+':''}${n.toFixed(1)} ${unit}`}
+function resize(){const dpr=Math.min(window.devicePixelRatio||1,2), r=canvas.getBoundingClientRect();canvas.width=Math.round(r.width*dpr);canvas.height=Math.round(r.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);draw()}
+function line(x1,y1,x2,y2,color,width=2,dash=[],glow=true){ctx.save();ctx.strokeStyle=color;ctx.lineWidth=width;ctx.setLineDash(dash);if(glow&&$('glow').checked){ctx.shadowColor=color;ctx.shadowBlur=12}ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();ctx.restore()}
+function text(t,x,y,color='#dceeff',size=11,align='center'){ctx.save();ctx.fillStyle=color;ctx.font=`600 ${size}px Inter, system-ui, sans-serif`;ctx.textAlign=align;ctx.fillText(t,x,y);ctx.restore()}
+function arrow(x,y1,y2,color,label){ctx.save();ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=3;if($('glow').checked){ctx.shadowColor=color;ctx.shadowBlur=13}ctx.beginPath();ctx.moveTo(x,y1);ctx.lineTo(x,y2);ctx.stroke();const dir=y2<y1?-1:1;ctx.beginPath();ctx.moveTo(x,y2);ctx.lineTo(x-6,y2-dir*10);ctx.lineTo(x+6,y2-dir*10);ctx.closePath();ctx.fill();ctx.restore();text(label,x,y1-10,color,11)}
+function draw(){
+ const rect=canvas.getBoundingClientRect(), w=rect.width,h=rect.height;if(!w||!h)return;
+ ctx.clearRect(0,0,w,h);
+ if($('showGrid').checked){ctx.save();ctx.strokeStyle='#29476522';ctx.lineWidth=1;for(let x=0;x<w;x+=28){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<h;y+=28){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}ctx.restore()}
+ const mid=h*.58, elx=w*.70, scale=Math.min((w*.53)/Math.max(state.distance,state.focal*2,35),5.2);
+ const pxPerCm=scale, s=sSigned(), f=fSigned(), result=calc();
+ const objx=elx-(isMirror()?s: s)*pxPerCm;
+ // Object coordinate: real is left; virtual is right of the element.
+ const ox=state.object==='real'?elx-state.distance*pxPerCm:elx+state.distance*pxPerCm;
+ const height=Math.min(h*.25,Math.max(35,state.distance*.8))* (state.object==='virtual'?-1:1);
+ const focalX=elx-(isMirror()?1:1)*f*pxPerCm; // signed focal location in physical convention
+ const focusX=elx-f*pxPerCm;
+ const cX=elx-2*f*pxPerCm;
+ const axisColor='#9cb5d477';
+ line(14,mid,w-14,mid,axisColor,1.2,[7,6],false);
+ // Optical element
+ if(isMirror()){
+   const curve=state.element==='concaveMirror'?1:-1;
+   ctx.save();ctx.lineWidth=4;ctx.strokeStyle=state.element==='concaveMirror'?'#54dfff':'#6fa7ff';if($('glow').checked){ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=18}
+   ctx.beginPath();for(let y=-h*.42;y<=h*.42;y+=2){let x=elx+curve*(y*y)/(h*.95);if(y===-h*.42)ctx.moveTo(x,mid+y);else ctx.lineTo(x,mid+y)}ctx.stroke();ctx.restore();
+   // silver backing
+   ctx.save();ctx.strokeStyle='#b3d5ef';ctx.lineWidth=7;ctx.globalAlpha=.45;ctx.beginPath();ctx.moveTo(elx+curve*7,mid-h*.40);ctx.lineTo(elx+curve*7,mid+h*.40);ctx.stroke();ctx.restore();
+ }else{
+   ctx.save();const cx=elx, top=mid-h*.38, bot=mid+h*.38;ctx.beginPath();ctx.moveTo(cx,top);ctx.bezierCurveTo(cx+(state.element==='convexLens'?-48:28),mid-h*.16,cx+(state.element==='convexLens'?-48:28),mid+h*.16,cx,bot);ctx.bezierCurveTo(cx+(state.element==='convexLens'?48:-28),mid+h*.16,cx+(state.element==='convexLens'?48:-28),mid-h*.16,cx,top);ctx.closePath();const grad=ctx.createLinearGradient(cx-45,0,cx+45,0);grad.addColorStop(0,'#42e8ff12');grad.addColorStop(.5,'#42e8ff66');grad.addColorStop(1,'#42e8ff12');ctx.fillStyle=grad;ctx.fill();ctx.strokeStyle='#5eeaff';ctx.lineWidth=2;if($('glow').checked){ctx.shadowColor='#42e8ff';ctx.shadowBlur=18}ctx.stroke();ctx.restore();
+ }
+ if($('showLabels').checked){
+   text('P / O',elx,mid+19,'#cce4fa',10);text('F',focusX,mid+19,'#ffd16c',12);text('2F',cX,mid+19,'#9db8d8',10);
+   if(!isMirror())text('F',elx+f*pxPerCm,mid+19,'#ffd16c',12);
+ }
+ // Draw rays using thin-element model: ray segments toward element and outgoing direction.
+ if($('showRays').checked){
+   const rayColors=['#ff5f85','#42e8ff','#ffc45c'];
+   const rayHeights=[height, height*.62, height*.18];
+   rayHeights.forEach((rh,i)=>{
+     const sy=mid-rh;
+     let ix=elx, iy=sy;
+     if(state.object==='virtual'){ // incident rays are converging toward the virtual object behind element
+       const targetX=ox, targetY=mid-height;
+       const startX=14;
+       const startY=targetY+(startX-targetX)*(sy-targetY)/(elx-targetX);
+       line(startX,startY,elx,sy,rayColors[i],1.7,[],true);
+     }else line(ox,sy,elx,sy,rayColors[i],1.7,[],true);
+     // outgoing ray slope derived from ray height at element and paraxial lens/mirror deflection
+     const yrel=sy-mid;
+     let slope;
+     if(i===0) slope=-yrel/f; // parallel ray after element
+     else if(i===1) slope=0; // focal ray leaves parallel, approximate incoming angle selected accordingly
+     else slope=(mid-(mid-height))/(elx-ox); // central ray through pole/centre
+     // Use the standard image location to make all outgoing principal rays meet at the image point.
+     if(Number.isFinite(result.image) && Math.abs(result.image)<1000){
+       const imageX=isMirror()?elx-result.image*pxPerCm:elx+result.image*pxPerCm;
+       const imageY=mid+result.m*height;
+       if(i===0){line(elx,sy,imageX,imageY,rayColors[i],1.9,[],true)}
+       else if(i===1){line(elx,sy,imageX,imageY,rayColors[i],1.9,[],true)}
+       else {line(elx,sy,imageX,imageY,rayColors[i],1.9,[],true)}
+       if(!result.real && imageX>w*.03 && imageX<w*.97) line(elx,sy,imageX,imageY,'#b18cff',1.5,[5,5],false);
+     } else {
+       const dx=isMirror()?-1:1;line(elx,sy,elx+dx*w*.35,sy+slope*dx*w*.35,rayColors[i],1.8,[],true)
+     }
+   });
+ }
+ // Object and image arrows
+ const objDrawX=Math.max(16,Math.min(w-16,ox)), objY=mid-height;
+ arrow(objDrawX,mid,objY,'#ffc45c',state.object==='real'?'OBJECT':'VIRTUAL OBJ');
+ if(Number.isFinite(result.image)&&Math.abs(result.image)<1000){
+   const ix=isMirror()?elx-result.image*pxPerCm:elx+result.image*pxPerCm;
+   const iy=mid+result.m*height;
+   if(ix>12&&ix<w-12&&Math.abs(iy-mid)<h*.8){
+     arrow(ix,mid,iy,result.real?'#ff6b92':'#b18cff','IMAGE');
+     if(!result.real)text('backward extension',ix,iy+(iy<mid?-15:18),'#b18cff',9);
+   }else if(ix<=12||ix>=w-12)text('Image outside view',w/2,28,'#9cb5d4',11)
+ }else text('IMAGE AT ∞',w*.45,mid-22,'#ffcf6e',12);
+ if($('showLabels').checked){text('PRINCIPAL AXIS',w*.12,mid-9,'#6486a8',9,'left');text('f = '+(f>0?'+':'')+f+' cm',focusX,mid-14,'#ffd16c',9)}
+ // animated scan dash overlay
+ if(state.animate){ctx.save();ctx.globalAlpha=.65;ctx.strokeStyle='#ffffff';ctx.lineWidth=1;ctx.setLineDash([2,10]);ctx.lineDashOffset=-animFrame%12;ctx.beginPath();ctx.moveTo(14,mid);ctx.lineTo(w-14,mid);ctx.stroke();ctx.restore()}
+}
+function update(){
+ const r=calc(), f=r.f, s=r.s, img=r.image, m=r.m, real=r.real;
+ $('distanceValue').textContent=state.distance+' cm';$('focalValue').textContent=state.focal+' cm';
+ $('sceneTitle').innerHTML=names[state.element].toUpperCase()+' <span style="color:var(--cyan)">/ '+(state.object==='real'?'REAL OBJECT':'VIRTUAL OBJECT')+'</span>';
+ $('sceneSubtitle').textContent=state.object==='real'?'Rays diverge from the object before meeting the optical element.':'Incident rays are converging toward a point behind the element.';
+ $('objectHint').textContent=state.object==='real'?'Real object: rays spread out from the object before reaching the element.':'Virtual object: incoming rays are already converging toward a point beyond the element.';
+ $('focusHint').textContent=names[state.element]+': '+(converging()?'converging':'diverging')+' element, f = '+(f>0?'+':'')+f+' cm in this physical-distance convention.';
+ $('imageDistance').textContent=Number.isFinite(img)?fmt(Math.abs(img)):'∞';$('imageDistanceSub').textContent=Number.isFinite(img)?(real?'Real image side':'Virtual image side'):'At focal condition';
+ $('magnification').textContent=Number.isFinite(m)?(m>0?'+':'')+m.toFixed(2)+'×':'∞';$('magnificationSub').textContent=Number.isFinite(m)?(m<0?'Inverted relative to object':'Upright relative to object'):'Image height tends to infinity';
+ $('nature').textContent=!Number.isFinite(img)?'AT ∞':real?'REAL':'VIRTUAL';$('natureSub').textContent=!Number.isFinite(img)?'Emergent rays parallel':real?'Rays actually meet':'Rays appear to meet';
+ $('size').textContent=Number.isFinite(m)?Math.abs(m).toFixed(2)+'×':'∞';$('sizeSub').textContent=!Number.isFinite(m)?'Highly enlarged':Math.abs(m)>1.03?'Enlarged':Math.abs(m)<.97?'Diminished':'Same size';
+ $('objProp').textContent=(s>0?'+':'')+s+' cm';$('fProp').textContent=(f>0?'+':'')+f+' cm';$('posProp').textContent=Number.isFinite(img)?fmt(img):'∞';$('orientation').textContent=!Number.isFinite(m)?'At infinity':m<0?'Inverted':'Upright';$('sizeProp').textContent=!Number.isFinite(m)?'Highly enlarged':Math.abs(m)>1.03?'Enlarged':Math.abs(m)<.97?'Diminished':'Same size';$('locationProp').textContent=!Number.isFinite(img)?'At infinity':real?(isMirror()?'In front of mirror':'Opposite side'):(isMirror()?'Behind mirror':'Object side');
+ $('statusTag').textContent=!Number.isFinite(img)?'FOCAL CASE':real?'REAL IMAGE':'VIRTUAL IMAGE';$('statusTag').className='tag'+(!real?' warn':'');
+ $('formula').textContent=isMirror()?'1/f = 1/s + 1/s′':'1/f = 1/s + 1/s′';
+ $('formulaNote').textContent='Physical convention: real object s > 0; virtual object s < 0. Converging f > 0; diverging f < 0. Image s′ > 0 is real.';
+ document.querySelectorAll('[data-element]').forEach(b=>b.classList.toggle('active',b.dataset.element===state.element));
+ document.querySelectorAll('[data-object]').forEach(b=>b.classList.toggle('active',b.dataset.object===state.object));
+ draw();
+}
+document.querySelectorAll('[data-element]').forEach(b=>b.addEventListener('click',()=>{state.element=b.dataset.element;update()}));
+document.querySelectorAll('[data-object]').forEach(b=>b.addEventListener('click',()=>{state.object=b.dataset.object;update()}));
+$('distance').addEventListener('input',e=>{state.distance=+e.target.value;update()});
+$('focal').addEventListener('input',e=>{state.focal=+e.target.value;update()});
+document.querySelectorAll('[data-pos]').forEach(b=>b.addEventListener('click',()=>{
+ const f=state.focal, p=b.dataset.pos;let d=30;
+ if(p==='infinity')d=100;else if(p==='2f')d=2*f;else if(p==='f')d=f;else if(p==='between')d=Math.max(5,Math.round(f*.55));else if(p==='beyond2f')d=Math.min(100,Math.round(2.7*f));else if(p==='between2f')d=Math.round(1.4*f);
+ state.distance=Math.max(5,Math.min(100,d));$('distance').value=state.distance;update()
+}));
+['showLabels','showRays','glow','showGrid'].forEach(id=>$(id).addEventListener('change',draw));
+$('themeSwitch').addEventListener('change',e=>{document.body.style.filter=e.target.checked?'none':'brightness(1.55) saturate(.65)';$('modeText').textContent=e.target.checked?'DARK MODE':'LIGHT MODE'});
+$('reset').addEventListener('click',()=>{state={element:'concaveMirror',object:'real',distance:30,focal:15,animate:true,step:false,theme:'dark'};$('distance').value=30;$('focal').value=15;$('animateBtn').classList.add('active');$('animateBtn').textContent='▶ Animate rays';$('stepBtn').textContent='◎ Step-by-step';update()});
+$('animateBtn').addEventListener('click',()=>{state.animate=!state.animate;$('animateBtn').classList.toggle('active',state.animate);$('animateBtn').textContent=state.animate?'Ⅱ Pause rays':'▶ Animate rays';draw()});
+$('stepBtn').addEventListener('click',()=>{state.step=!state.step;$('stepBtn').classList.toggle('active',state.step);$('stepBtn').textContent=state.step?'✓ Step mode on':'◎ Step-by-step';if(state.step){state.animate=false;$('animateBtn').classList.remove('active');$('animateBtn').textContent='▶ Animate rays'}draw()});
+document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('[data-nav]').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  const tirMode=b.dataset.nav==='tir';
+  const studioMode=b.dataset.nav==='studio';
+  $('tirLab').classList.toggle('visible',tirMode);
+  $('aiStudio').classList.toggle('visible',studioMode);
+  document.querySelector('main').style.display=(tirMode||studioMode)?'none':'grid';
+  if(tirMode){updateTir();resizeTir();return}
+  if(studioMode){return}
+  if(b.dataset.nav==='lenses'){state.element='convexLens'}
+  else if(b.dataset.nav==='mirrors'){state.element='concaveMirror'}
+  else if(b.dataset.nav==='compare'){state.element='convexLens';$('sceneSubtitle').textContent='Compare converging and diverging systems using the optical-element controls.'}
+  else if(b.dataset.nav==='rays'){$('showRays').checked=true;$('showLabels').checked=true}
+  update()
+}));
+
+// --- Total internal reflection / refraction lab ---
+const tirCanvas = $('tirCanvas');
+const tirCtx = tirCanvas.getContext('2d');
+const materialPairs = {
+  glassAir:{n1:1.50,n2:1.00,a:'Glass',b:'Air'},
+  waterAir:{n1:1.33,n2:1.00,a:'Water',b:'Air'},
+  acrylicAir:{n1:1.49,n2:1.00,a:'Acrylic',b:'Air'},
+  diamondAir:{n1:2.42,n2:1.00,a:'Diamond',b:'Air'},
+  glassWater:{n1:1.50,n2:1.33,a:'Glass',b:'Water'},
+  airGlass:{n1:1.00,n2:1.50,a:'Air',b:'Glass'},
+  airWater:{n1:1.00,n2:1.33,a:'Air',b:'Water'},
+  airAcrylic:{n1:1.00,n2:1.49,a:'Air',b:'Acrylic'},
+  airDiamond:{n1:1.00,n2:2.42,a:'Air',b:'Diamond'},
+  waterGlass:{n1:1.33,n2:1.50,a:'Water',b:'Glass'}
+};
+function tirData(){
+  const p=materialPairs[$('tirPair').value], i=+$('tirAngle').value*Math.PI/180;
+  const hasCritical=p.n1>p.n2;
+  const C=hasCritical?Math.asin(p.n2/p.n1):null;
+  const sinR=p.n1*Math.sin(i)/p.n2;
+  const isTIR=hasCritical && i>C+1e-5;
+  const atCritical=hasCritical && Math.abs(i-C)<=0.008;
+  const r=sinR<=1?Math.asin(Math.min(1,sinR)):null;
+  // Unpolarised Fresnel reflectance. Above critical angle, all incident power is reflected.
+  let R=1;
+  if(!isTIR && !atCritical && r!==null){
+    const rs=(p.n1*Math.cos(i)-p.n2*Math.cos(r))/(p.n1*Math.cos(i)+p.n2*Math.cos(r));
+    const rp=(p.n1*Math.cos(r)-p.n2*Math.cos(i))/(p.n1*Math.cos(r)+p.n2*Math.cos(i));
+    R=(rs*rs+rp*rp)/2;
+  } else if(atCritical) R=1;
+  return {...p,i,C,r,isTIR,atCritical,R:Math.max(0,Math.min(1,R))};
+}
+function tirLine(x1,y1,x2,y2,color,width=2,dash=[]){
+  tirCtx.save();tirCtx.strokeStyle=color;tirCtx.lineWidth=width;tirCtx.setLineDash(dash);
+  if($('tirGlow').checked){tirCtx.shadowColor=color;tirCtx.shadowBlur=15}
+  tirCtx.beginPath();tirCtx.moveTo(x1,y1);tirCtx.lineTo(x2,y2);tirCtx.stroke();tirCtx.restore();
+}
+function tirText(s,x,y,color='#dceeff',size=11,align='center'){
+  tirCtx.save();tirCtx.fillStyle=color;tirCtx.font=`600 ${size}px Inter,system-ui,sans-serif`;tirCtx.textAlign=align;tirCtx.fillText(s,x,y);tirCtx.restore();
+}
+function tirArrow(x1,y1,x2,y2,color,alpha=1){
+  tirCtx.save();tirCtx.globalAlpha=alpha;tirCtx.strokeStyle=color;tirCtx.fillStyle=color;tirCtx.lineWidth=3;
+  if($('tirGlow').checked){tirCtx.shadowColor=color;tirCtx.shadowBlur=14}
+  tirCtx.beginPath();tirCtx.moveTo(x1,y1);tirCtx.lineTo(x2,y2);tirCtx.stroke();
+  const a=Math.atan2(y2-y1,x2-x1), len=10;
+  tirCtx.beginPath();tirCtx.moveTo(x2,y2);tirCtx.lineTo(x2-len*Math.cos(a-.45),y2-len*Math.sin(a-.45));tirCtx.lineTo(x2-len*Math.cos(a+.45),y2-len*Math.sin(a+.45));tirCtx.closePath();tirCtx.fill();tirCtx.restore();
+}
+function resizeTir(){
+  if(!tirCanvas)return;
+  const dpr=Math.min(window.devicePixelRatio||1,2),r=tirCanvas.getBoundingClientRect();
+  if(!r.width||!r.height)return;
+  tirCanvas.width=Math.round(r.width*dpr);tirCanvas.height=Math.round(r.height*dpr);
+  tirCtx.setTransform(dpr,0,0,dpr,0,0);drawTir();
+}
+function drawTir(){
+  if(!tirCanvas || !$('tirLab').classList.contains('visible'))return;
+  const r=tirCanvas.getBoundingClientRect(),w=r.width,h=r.height;if(!w||!h)return;
+  const d=tirData(),ix=w*.48,iy=h*.52;
+  tirCtx.clearRect(0,0,w,h);
+  // Rarer medium above, denser medium below.
+  const g1=tirCtx.createLinearGradient(0,0,0,iy);g1.addColorStop(0,'#10243b');g1.addColorStop(1,'#142f47');
+  tirCtx.fillStyle=g1;tirCtx.fillRect(0,0,w,iy);
+  const g2=tirCtx.createLinearGradient(0,iy,0,h);g2.addColorStop(0,'#123d53');g2.addColorStop(1,'#071725');
+  tirCtx.fillStyle=g2;tirCtx.fillRect(0,iy,w,h-iy);
+  tirCtx.save();tirCtx.strokeStyle='#4ce7ff';tirCtx.lineWidth=2;if($('tirGlow').checked){tirCtx.shadowColor='#42e8ff';tirCtx.shadowBlur=12}tirCtx.beginPath();tirCtx.moveTo(0,iy);tirCtx.lineTo(w,iy);tirCtx.stroke();tirCtx.restore();
+  // Subtle grid
+  tirCtx.save();tirCtx.strokeStyle='#7eb3d00c';tirCtx.lineWidth=1;for(let x=0;x<w;x+=28){tirCtx.beginPath();tirCtx.moveTo(x,0);tirCtx.lineTo(x,h);tirCtx.stroke()}for(let y=0;y<h;y+=28){tirCtx.beginPath();tirCtx.moveTo(0,y);tirCtx.lineTo(w,y);tirCtx.stroke()}tirCtx.restore();
+  tirText(`${d.b.toUpperCase()}  ·  n = ${d.n2.toFixed(2)}`,w*.15,25,'#9db8d6',11);
+  tirText(`${d.a.toUpperCase()}  ·  n = ${d.n1.toFixed(2)}`,w*.15,h-17,'#9db8d6',11);
+  tirLine(ix,15,ix,h-12,'#b18cff',1.5,[5,6]);
+  tirText('NORMAL',ix+7,30,'#b18cff',9,'left');
+  // Angle i measured from the normal. Incident ray comes from lower left.
+  const L=Math.min(w*.37,h*.37), i=d.i;
+  const sx=ix-L*Math.sin(i), sy=iy+L*Math.cos(i);
+  tirArrow(sx,sy,ix,iy,'#ff5f85');
+  // reflected ray angle equals incidence angle, lower right
+  const reflEnd={x:ix+L*Math.sin(i),y:iy+L*Math.cos(i)};
+  tirArrow(ix,iy,reflEnd.x,reflEnd.y,'#42e8ff');
+  if(d.r!==null && !d.isTIR && !d.atCritical){
+    const transL=Math.min(w*.40,h*.43),tx=ix+transL*Math.sin(d.r),ty=iy-transL*Math.cos(d.r);
+    tirArrow(ix,iy,tx,ty,'#ffc45c',Math.max(.25,1-d.R));
+    tirText(`r = ${(d.r*180/Math.PI).toFixed(1)}°`,tx,Math.max(44,ty-12),'#ffc45c',11);
+  }else if(d.atCritical){
+    const tx=Math.min(w-15,ix+L*1.25);
+    tirArrow(ix,iy,tx,iy,'#ffc45c',.9);
+    tirText('r = 90° · along boundary',Math.min(w-100,ix+L*.65),iy-13,'#ffc45c',10);
+  }else{
+    // Evanescent field hint: not a propagating refracted ray.
+    tirCtx.save();tirCtx.globalAlpha=.5;tirCtx.strokeStyle='#ffc45c';tirCtx.setLineDash([3,6]);tirCtx.beginPath();tirCtx.moveTo(ix,iy);tirCtx.lineTo(ix+36,iy-18);tirCtx.stroke();tirCtx.restore();
+    tirText('NO PROPAGATING REFRACTED RAY',Math.min(w-12,ix+105),iy-30,'#ffc45c',9,'left');
+  }
+  if($('tirShowAngles').checked){
+    // Angle arcs at point of incidence
+    const arcR=36;
+    tirCtx.save();tirCtx.strokeStyle='#ff91aa';tirCtx.lineWidth=1.5;tirCtx.beginPath();tirCtx.arc(ix,iy,arcR,Math.PI/2,Math.PI/2+i,false);tirCtx.stroke();tirCtx.restore();
+    tirText(`i = ${(i*180/Math.PI).toFixed(1)}°`,ix-53,iy+46,'#ff91aa',10);
+    tirText(d.C===null?'No critical angle':`C = ${(d.C*180/Math.PI).toFixed(1)}°`,ix+65,iy+53,'#d6c4ff',10);
+  }
+  // Decorative photon dots moving on ray paths
+  const t=(performance.now()/850)%1;
+  const px=sx+(ix-sx)*t,py=sy+(iy-sy)*t;
+  tirCtx.save();tirCtx.fillStyle='#fff';tirCtx.shadowColor='#ff5f85';tirCtx.shadowBlur=16;tirCtx.beginPath();tirCtx.arc(px,py,3,0,Math.PI*2);tirCtx.fill();tirCtx.restore();
+}
+function updateTir(){
+  const d=tirData(),deg=x=>(x*180/Math.PI).toFixed(1)+'°';
+  $('tirAngleValue').textContent=(+$('tirAngle').value).toFixed(1)+'°';
+  $('tirCriticalValue').textContent=d.C===null?'Not defined':deg(d.C);
+  $('tirRefractValue').textContent=d.isTIR?'—':d.atCritical?'90.0°':d.r?deg(d.r):'—';
+  $('tirRefractSub').textContent=d.isTIR?'No propagating refracted ray':d.atCritical?'Refracted ray travels along boundary':'Measured from the normal';
+  $('tirReflectValue').textContent=(d.R*100).toFixed(1)+'%';
+  $('tirTransmitValue').textContent='Transmitted: '+((1-d.R)*100).toFixed(1)+'% (power approximation)';
+  $('tirN1').textContent=d.a+' · '+d.n1.toFixed(2);$('tirN2').textContent=d.b+' · '+d.n2.toFixed(2);
+  $('tirI').textContent=deg(d.i);$('tirC').textContent=d.C===null?'Not defined':deg(d.C);
+  let title,desc;
+  if(d.isTIR){title='TOTAL INTERNAL REFLECTION';desc='<b>Above the critical angle:</b> the transmitted propagating ray disappears. In the ideal model, all incident power is reflected back into the denser medium.'}
+  else if(d.atCritical){title='CRITICAL ANGLE';desc='<b>At the critical angle:</b> the refracted ray travels along the boundary (r = 90°). This is the threshold for total internal reflection.'}
+  else if(d.C===null){title='REFRACTION INTO A DENSER MEDIUM';desc='<b>Rarer → denser:</b> the refracted ray bends towards the normal. A critical angle does not exist for this direction, so total internal reflection cannot occur.'}
+  else{title='PARTIAL REFLECTION + REFRACTION';desc='<b>Denser → rarer, below critical angle:</b> some light reflects at the boundary and the rest refracts into the rarer medium.'}
+  $('tirStateTag').textContent=title;$('tirBehaviour').textContent=d.isTIR?'Total internal reflection':d.atCritical?'Critical condition':'Reflection + refraction';
+  $('tirExplanation').innerHTML=desc;
+  document.querySelectorAll('[data-tir-angle]').forEach(b=>b.classList.toggle('active',Math.abs(+$('tirAngle').value-(+b.dataset.tirAngle))<.1));
+  drawTir();
+}
+$('tirPair').addEventListener('change',updateTir);
+$('tirAngle').addEventListener('input',updateTir);
+$('tirShowAngles').addEventListener('change',drawTir);$('tirGlow').addEventListener('change',drawTir);
+document.querySelectorAll('[data-tir-angle]').forEach(b=>b.addEventListener('click',()=>{$('tirAngle').value=b.dataset.tirAngle;updateTir()}));
+$('tirCriticalBtn').addEventListener('click',()=>{$('tirAngle').value=(Math.asin(materialPairs[$('tirPair').value].n2/materialPairs[$('tirPair').value].n1)*180/Math.PI).toFixed(1);updateTir()});
+$('tirResetBtn').addEventListener('click',()=>{$('tirPair').value='glassAir';$('tirAngle').value=30;updateTir()});
+
+
+// OPTICS LAB: integrated UI and local concept preview
+const studio={mode:'prompt',file:null,model:'convexLens',source:'',setMode(m){this.mode=m;$('studioPromptPane').style.display=m==='prompt'?'block':'none';$('studioImagePane').style.display=m==='image'?'block':'none';$('studioPromptTab').classList.toggle('active',m==='prompt');$('studioImageTab').classList.toggle('active',m==='image');$('studioStatus').textContent=m==='prompt'?'PROMPT MODE':'IMAGE MODE'},clear(){$('studioPrompt').value='';$('studioImageNotes').value='';$('studioImageInput').value='';this.file=null;$('studioFilePreview').style.display='none';$('studioOutput').style.display='none';$('studioEmpty').style.display='grid';$('studioStatus').textContent='WAITING FOR INPUT';$('studioStatus').classList.remove('local')}};
+$('studioPromptTab').addEventListener('click',()=>studio.setMode('prompt'));$('studioImageTab').addEventListener('click',()=>studio.setMode('image'));
+$('studioDrop').addEventListener('click',()=>$('studioImageInput').click());$('studioDrop').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();$('studioImageInput').click()}});
+$('studioDrop').addEventListener('dragover',e=>{e.preventDefault();$('studioDrop').classList.add('dragover')});$('studioDrop').addEventListener('dragleave',()=>$('studioDrop').classList.remove('dragover'));
+$('studioDrop').addEventListener('drop',e=>{e.preventDefault();$('studioDrop').classList.remove('dragover');const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/'))studioLoadImage(f)});
+$('studioImageInput').addEventListener('change',e=>{if(e.target.files[0])studioLoadImage(e.target.files[0])});
+function studioLoadImage(f){studio.file=f;$('studioFileThumb').src=URL.createObjectURL(f);$('studioFileName').textContent=f.name;$('studioFileSize').textContent=(f.size/1024).toFixed(0)+' KB · selected';$('studioFilePreview').style.display='flex';$('studioStatus').textContent='IMAGE SELECTED'}
+$('studioRemoveImage').addEventListener('click',()=>{studio.file=null;$('studioImageInput').value='';$('studioFilePreview').style.display='none';$('studioStatus').textContent='IMAGE MODE'});$('studioClear').addEventListener('click',()=>studio.clear());
+function studioChooseModel(t){t=t.toLowerCase();if(t.includes('total internal')||t.includes('critical angle')||t.includes('snell')||t.includes('refraction'))return'tir';if(t.includes('concave mirror'))return'concaveMirror';if(t.includes('convex mirror'))return'convexMirror';if(t.includes('concave lens'))return'concaveLens';if(t.includes('lens'))return'convexLens';return'concaveMirror'}
+function studioDraw(){const c=$('studioCanvas'),x=c.getContext('2d'),r=c.getBoundingClientRect(),w=r.width,h=r.height;if(!w||!h)return;const dpr=Math.min(devicePixelRatio||1,2);c.width=w*dpr;c.height=h*dpr;x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);x.fillStyle='#07111f';x.fillRect(0,0,w,h);x.strokeStyle='#1c3b5930';for(let a=0;a<w;a+=25){x.beginPath();x.moveTo(a,0);x.lineTo(a,h);x.stroke()}for(let a=0;a<h;a+=25){x.beginPath();x.moveTo(0,a);x.lineTo(w,a);x.stroke()}const mid=h*.58,el=w*.68,ox=w*.17,fx=w*.24;x.strokeStyle='#8ba7c5';x.setLineDash([5,5]);x.beginPath();x.moveTo(10,mid);x.lineTo(w-10,mid);x.stroke();x.setLineDash([]);if(studio.model==='tir'){x.fillStyle='#123d53';x.fillRect(0,mid,w,h-mid);x.fillStyle='#10243b';x.fillRect(0,0,w,mid);x.strokeStyle='#42e8ff';x.beginPath();x.moveTo(0,mid);x.lineTo(w,mid);x.stroke();x.strokeStyle='#b18cff';x.setLineDash([4,5]);x.beginPath();x.moveTo(el,10);x.lineTo(el,h-10);x.stroke();x.setLineDash([]);[[el-95,mid+80,el,mid,'#ff5f85'],[el,mid,el+95,mid+80,'#42e8ff'],[el,mid,el+80,mid-70,'#ffc45c']].forEach(a=>{x.strokeStyle=a[4];x.lineWidth=2.5;x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(a[2],a[3]);x.stroke()});x.fillStyle='#dceeff';x.font='11px system-ui';x.fillText('Rarer medium',12,22);x.fillText('Denser medium',12,h-12)}else{x.strokeStyle='#42e8ff';x.lineWidth=3;x.beginPath();if(studio.model.includes('Mirror')){const s=studio.model==='concaveMirror'?1:-1;for(let y=-h*.38;y<=h*.38;y+=2){let xx=el+s*y*y/(h*.9);if(y===-h*.38)x.moveTo(xx,mid+y);else x.lineTo(xx,mid+y)}}else{x.moveTo(el,mid-h*.38);x.bezierCurveTo(el-35,mid-h*.15,el-35,mid+h*.15,el,mid+h*.38);x.bezierCurveTo(el+35,mid+h*.15,el+35,mid-h*.15,el,mid-h*.38)}x.stroke();x.strokeStyle='#ffd16c';x.setLineDash([4,5]);x.beginPath();x.moveTo(fx,mid-12);x.lineTo(fx,mid+12);x.stroke();x.setLineDash([]);[[ox,mid-62,el,mid-62,'#ff5f85'],[ox,mid-62,el,mid,'#42e8ff'],[el,mid-62,w*.89,mid+55,'#ffc45c']].forEach(a=>{x.strokeStyle=a[4];x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(a[2],a[3]);x.stroke()});x.fillStyle='#ffc45c';x.fillRect(ox-2,mid-62,4,62);x.fillStyle='#dceeff';x.font='11px system-ui';x.fillText('OBJECT',ox-15,mid-72);x.fillText(studio.model.replace(/([A-Z])/g,' $1').toUpperCase(),el-30,mid+h*.43)}}
+$('studioGenerate').addEventListener('click',async()=>{
+ let source='', imageData=null;
+ if(studio.mode==='prompt'){
+   source=$('studioPrompt').value.trim();
+   if(!source){$('studioPrompt').focus();$('studioStatus').textContent='ADD A PROMPT';return}
+ }else{
+   if(!studio.file){$('studioStatus').textContent='UPLOAD AN IMAGE FIRST';return}
+   source=$('studioImageNotes').value.trim()||'Interpret the uploaded optics question/diagram and propose an interactive model.';
+   imageData=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(studio.file)});
+ }
+ const btn=$('studioGenerate');btn.disabled=true;btn.textContent='Connecting to AI…';
+ $('studioStatus').textContent='CONTACTING AI BACKEND';$('studioStatus').classList.remove('local');
+ try{
+   const response=await fetch('/api/generate',{
+     method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({prompt:source,imageData,mode:studio.mode})
+   });
+   const payload=await response.json().catch(()=>({}));
+   if(!response.ok)throw new Error(payload.error||`Backend returned ${response.status}`);
+   const spec=payload.model;
+   if(!spec||!spec.modelType)throw new Error('AI response did not contain a valid model specification.');
+   studio.source=source;studio.model=spec.modelType;
+   const names={concaveMirror:'Concave mirror',convexMirror:'Convex mirror',convexLens:'Convex lens',concaveLens:'Concave lens',tir:'Refraction / critical angle',other:'Custom optics concept'};
+   $('studioType').textContent=spec.title||names[studio.model]||'Optics concept';
+   $('studioControls').textContent=(spec.controls||[]).join(', ')||'See model notes';
+   $('studioPhysics').textContent=(spec.physics||[]).join(', ')||'Physics needs review';
+   $('studioPreviewTitle').textContent=(spec.title||names[studio.model]||'OPTICS MODEL').toUpperCase()+' · AI SPEC';
+   $('studioDescription').textContent=(spec.summary||'AI-generated model specification.')+' '+(spec.educationalNotes||'Check assumptions and sign conventions before relying on the results.');
+   $('studioEmpty').style.display='none';$('studioOutput').style.display='block';
+   $('studioStatus').textContent='AI MODEL SPEC READY';$('studioStatus').classList.add('local');
+   $('studioDistance').value=spec.parameters?.objectDistanceCm||30;
+   $('studioFocal').value=spec.parameters?.focalLengthCm||15;
+   studioUpdateCalc();requestAnimationFrame(studioDraw);
+ }catch(err){
+   $('studioStatus').textContent='AI CONNECTION FAILED';
+   $('studioDescription').textContent='Could not reach the AI backend: '+err.message+'. Start the included server and configure OPENAI_API_KEY. If this page is opened as a file:// URL, use the local server URL instead.';
+   $('studioEmpty').style.display='none';$('studioOutput').style.display='block';
+   $('studioType').textContent='Backend not connected';
+   $('studioControls').textContent='Start the included server';
+   $('studioPhysics').textContent='No AI result returned';
+ }finally{btn.disabled=false;btn.textContent='✦ Generate model'}
+});
+
+function studioUpdateCalc(){
+ const u=Number($('studioDistance').value), fm=Number($('studioFocal').value);
+ $('studioDistanceValue').textContent=u+' cm';$('studioFocalValue').textContent=fm+' cm';
+ if(!studio.model || studio.model==='tir'){
+  $('studioCalc').textContent='Refraction model selected. Set refractive indices in the TIR & Refraction lab for Snell’s law and critical-angle results.';return;
+ }
+ const converges=studio.model==='concaveMirror'||studio.model==='convexLens';
+ const f=converges?fm:-fm;
+ const denom=(1/f)-(1/u);
+ if(Math.abs(denom)<1e-8){$('studioCalc').textContent='Image at infinity (object at focal point).';return}
+ const v=1/denom, mag=-v/u;
+ const nature=(v>0?'real':'virtual')+', '+(mag<0?'inverted':'upright');
+ $('studioCalc').textContent=`Using 1/f = 1/v + 1/u (Cartesian sign convention): v = ${v.toFixed(2)} cm; magnification m = ${mag.toFixed(2)}×; image is ${nature}.`;
+}
+$('studioDistance').addEventListener('input',()=>{studioUpdateCalc();requestAnimationFrame(studioDraw)});
+$('studioFocal').addEventListener('input',()=>{studioUpdateCalc();requestAnimationFrame(studioDraw)});
+const STUDIO_KEY='opticsLabSavedProjectsV1';
+function studioGetSaved(){try{return JSON.parse(localStorage.getItem(STUDIO_KEY)||'[]')}catch(e){return []}}
+function studioSetSaved(items){try{localStorage.setItem(STUDIO_KEY,JSON.stringify(items));return true}catch(e){$('studioStatus').textContent='SAVE FAILED — BROWSER STORAGE UNAVAILABLE';return false}}
+function studioRefreshSaved(selectId=''){
+ const items=studioGetSaved(), sel=$('studioSavedSelect');sel.innerHTML='';
+ if(!items.length){const o=document.createElement('option');o.value='';o.textContent='No saved projects yet';sel.appendChild(o);return}
+ items.forEach((it,i)=>{const o=document.createElement('option');o.value=it.id;o.textContent=it.name||`Optics project ${i+1}`;sel.appendChild(o)});
+ if(selectId)sel.value=selectId;
+}
+function studioProjectData(){
+ return {version:1,id:'project-'+Date.now(),name:(studio.source||'Optics experiment').replace(/\s+/g,' ').slice(0,56)||'Optics experiment',mode:studio.mode,model:studio.model,source:studio.source,prompt:$('studioPrompt').value,imageNotes:$('studioImageNotes').value,distance:Number($('studioDistance').value),focal:Number($('studioFocal').value),savedAt:new Date().toISOString()};
+}
+function studioLoadProject(pr){
+ if(!pr||!pr.model){$('studioStatus').textContent='INVALID PROJECT FILE';return}
+ studio.mode=pr.mode==='image'?'image':'prompt';studio.setMode(studio.mode);studio.model=pr.model;studio.source=pr.source||pr.prompt||'';
+ $('studioPrompt').value=pr.prompt||'';$('studioImageNotes').value=pr.imageNotes||'';
+ $('studioDistance').value=pr.distance||30;$('studioFocal').value=pr.focal||15;
+ const names={concaveMirror:'Concave mirror',convexMirror:'Convex mirror',convexLens:'Convex lens',concaveLens:'Concave lens',tir:'Refraction / critical angle'};
+ const nm=names[studio.model]||'Optics concept';
+ $('studioType').textContent=nm;$('studioPreviewTitle').textContent=nm.toUpperCase()+' · CONCEPT';
+ $('studioControls').textContent=studio.model==='tir'?'Incident angle, refractive indices, critical angle':'Object distance, focal length, image position, magnification';
+ $('studioPhysics').textContent=studio.model==='tir'?'Snell’s law, critical angle, total internal reflection':'Mirror/lens equation, magnification, image nature';
+ $('studioDescription').textContent='Saved local concept: '+studio.source+'. This is a local concept model, not AI-generated interpretation.';
+ $('studioEmpty').style.display='none';$('studioOutput').style.display='block';$('studioStatus').textContent='PROJECT OPENED';$('studioStatus').classList.add('local');studioUpdateCalc();requestAnimationFrame(studioDraw);
+}
+$('studioSave').addEventListener('click',()=>{
+ if(!$('studioOutput')||$('studioOutput').style.display==='none'){ $('studioStatus').textContent='GENERATE A MODEL FIRST';return}
+ const items=studioGetSaved(), pr=studioProjectData();items.unshift(pr);
+ if(studioSetSaved(items)){studioRefreshSaved(pr.id);$('studioStatus').textContent='PROJECT SAVED';}
+});
+$('studioOpenSaved').addEventListener('click',()=>{const id=$('studioSavedSelect').value,pr=studioGetSaved().find(x=>x.id===id);if(pr)studioLoadProject(pr)});
+$('studioDeleteSaved').addEventListener('click',()=>{const id=$('studioSavedSelect').value;if(!id)return;studioSetSaved(studioGetSaved().filter(x=>x.id!==id));studioRefreshSaved();$('studioStatus').textContent='SAVED PROJECT DELETED'});
+$('studioExport').addEventListener('click',()=>{const data=studioProjectData(),blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=(data.name.replace(/[^a-z0-9-_]/gi,'_')||'optics-project')+'.json';a.click();URL.revokeObjectURL(url);$('studioStatus').textContent='PROJECT EXPORTED'});
+$('studioImport').addEventListener('click',()=>$('studioImportInput').click());
+$('studioImportInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const pr=JSON.parse(await f.text());studioLoadProject(pr);const items=studioGetSaved();pr.id=pr.id||'project-'+Date.now();items.unshift(pr);studioSetSaved(items);studioRefreshSaved(pr.id)}catch(err){$('studioStatus').textContent='COULD NOT IMPORT JSON'}e.target.value=''});
+studioRefreshSaved();
+$('studioOpenLab').addEventListener('click',()=>{const m=studio.model;document.querySelectorAll('[data-nav]').forEach(b=>b.classList.remove('active'));$('aiStudio').classList.remove('visible');$('tirLab').classList.remove('visible');document.querySelector('main').style.display='grid';if(m==='tir'){document.querySelector('[data-nav="tir"]').classList.add('active');$('tirLab').classList.add('visible');document.querySelector('main').style.display='none';updateTir();resizeTir();return}document.querySelector('[data-nav="mirrors"]').classList.add('active');state.element=m;update()});
+$('studioEditPrompt').addEventListener('click',()=>{(studio.mode==='prompt' ? $('studioPrompt') : $('studioImageNotes')).focus()});
+
+window.addEventListener('resize',resize);
+window.addEventListener('resize',()=>{if($('aiStudio').classList.contains('visible')&&$('studioOutput').style.display==='block')studioDraw()});
+window.addEventListener('resize',resizeTir);
+const ro=new ResizeObserver(resize);ro.observe(canvas);
+let last=0;function loop(t){if(t-last>45){last=t;if(state.animate){animFrame+=1;draw()}if($('tirLab').classList.contains('visible'))drawTir()}requestAnimationFrame(loop)}
+update();resize();updateTir();resizeTir();requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
